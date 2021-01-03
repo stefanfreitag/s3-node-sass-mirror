@@ -29,5 +29,5 @@ const project = new AwsCdkTypeScriptApp({
     module: 'cdk_s3_node_sass_mirror',
   },
 });
-project.gitignore.exclude("__pycache__/", "layer-code/python/");
+project.gitignore.exclude("__pycache__/", "layer/python/");
 project.synth();

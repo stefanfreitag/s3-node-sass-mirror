@@ -45,7 +45,7 @@ cdk.out/
 .cdk.staging/
 .parcel-cache/
 __pycache__/
-layer-code/python/
+layer/python/
 !/package.json
 !/.npmignore
 !/LICENSE
