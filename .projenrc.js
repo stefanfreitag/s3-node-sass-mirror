@@ -1,7 +1,7 @@
 const { AwsCdkTypeScriptApp, Stability } = require('projen');
 
 const project = new AwsCdkTypeScriptApp({
-  cdkVersion: "1.81.0",
+  cdkVersion: "1.82.0",
   name: "s3-node-sass-mirror",
   authorAddress: "stefan.freitag@udo.edu",
   authorName: "Stefan Freitag",

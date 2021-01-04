@@ -6,12 +6,21 @@ import { RetentionDays } from '@aws-cdk/aws-logs';
 import { BlockPublicAccess, Bucket, BucketEncryption, BucketPolicy } from '@aws-cdk/aws-s3';
 import { App, Construct, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
 
+export interface NodeSassMirrorProperties extends StackProps{
+  /**
+   * IP addresses (CIDR format) that can access the mirrored content.
+   */
+  readonly whitelist: Array<string>;
+
+}
 
 export class NodeSassMirrorStack extends Stack {
-  constructor(scope: Construct, id: string, props: StackProps = {}) {
+  constructor(scope: Construct, id: string, props: NodeSassMirrorProperties = {
+    whitelist: [],
+  }) {
     super(scope, id, props);
 
-    const bucket = this.createBucket([]);
+    const bucket = this.createBucket(props.whitelist);
     const layer = this.createLambdaLayer();
     const f = this.createFunction(layer, bucket);
     bucket.grantPut(f);
@@ -141,5 +150,8 @@ const devEnv = {
 
 const app = new App();
 
-new NodeSassMirrorStack(app, 'my-stack-dev', { env: devEnv });
+new NodeSassMirrorStack(app, 'my-stack-dev', {
+  env: devEnv,
+  whitelist: ['87.122.211.250/32'],
+});
 app.synth();
