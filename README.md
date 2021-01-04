@@ -15,6 +15,7 @@ cdk destroy --profile <AWS profile name>
 ```sh
 aws apigateway get-api-keys --name-query api-key --include-value --profile <AWS profile name>
 ```
+
 Use the content of the field `value`.
 
 
@@ -26,5 +27,5 @@ curl -X POST  -H "x-api-key: <api-key-value>" https://<api-gw-id>.execute-api.eu
 
 ## ToDos
 
-- Check for existence if files in S3 Bucket to avoid multiple downloads
+- Return proper return values from Lambda
 - Introduce usage of step functions to avoid timeout issue in API Gateway
