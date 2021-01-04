@@ -11,7 +11,7 @@ from utils import get_release_by_tag
 
 OWNER = "sass"
 REPOSITORY = "node-sass"
-S3_BUCKET = "<undefined"
+S3_BUCKET = "<undefined>"
 
 
 def upload_file(filename: str, bucket_name: str, bucket_directory: str) -> bool:
@@ -39,7 +39,19 @@ def upload_file(filename: str, bucket_name: str, bucket_directory: str) -> bool:
     return True
 
 
-def check_existence(tag: str, bucket_name: str) -> bool:
+def is_existing(bucket_name: str, key: str) -> bool:
+    """
+    Checks if the key exists in the bucket.
+    :param bucket_name: Name of the S3 bucket to check
+    :type bucket_name: string
+    :param key: The key to check for.
+    :type key: string
+    :return:
+    """
+    if not bucket_name:
+        raise RuntimeError("Missing bucket name.")
+    if not key:
+        raise RuntimeError("Missing key.")
     session = boto3.Session()
     s3_client = session.client("s3")
     try:
@@ -47,15 +59,11 @@ def check_existence(tag: str, bucket_name: str) -> bool:
     except ClientError as error:
         logging.error(error)
     try:
-        logging.info("Checking for node-sass version in S3 bucket " + S3_BUCKET)
-        # TODO
-        # file_name = os.path.basename(meta_info.download_url)
-        # response = s3_client.head_object(Key=file_name, Bucket=S3_BUCKET)
-
+        logging.info("Checking for key " + key + " in S3 bucket " + S3_BUCKET)
+        s3_client.head_object(Key=key, Bucket=S3_BUCKET)
         return True
     except ClientError:
-        logging.error("Not found")
-        print("Not found")
+        logging.info("Bucket " + bucket_name + " does not contain " + key)
         return False
 
 
@@ -109,9 +117,12 @@ def main(event, context):
                         do_download(asset, "/tmp/")
                     else:
                         logging.info("Local copy exists for " + asset["name"])
-                    upload_file(
-                        "/tmp/" + asset["name"], S3_BUCKET, REPOSITORY + "/" + tag
-                    )
+                    if not is_existing(
+                        S3_BUCKET, REPOSITORY + "/" + tag + "/" + asset["name"]
+                    ):
+                        upload_file(
+                            "/tmp/" + asset["name"], S3_BUCKET, REPOSITORY + "/" + tag
+                        )
             else:
                 raise RuntimeError("No releases found for tag " + tag + ".")
         except KeyError as identifier:
@@ -134,7 +145,7 @@ def is_relevant_asset(asset: dict):
     :type asset: dict
     :return:
     """
-    return "linux" in asset["name"] or "windows" in asset["name"]
+    return "linux" in asset["name"] or "win32" in asset["name"]
 
 
 def configure_logging():
@@ -153,6 +164,6 @@ if __name__ == "__main__":
     configure_logging()
     os.environ["AWS_PROFILE"] = "cdk"
     os.environ["BUCKET_NAME"] = "stefanfreitag1977-demo-bucket"
-    event = {"path": "/v1.0/mirror", "queryStringParameters": {"tag": "v.4.13.1"}}
+    event = {"path": "/v1.0/mirror", "queryStringParameters": {"tag": "v4.13.1"}}
     context = None
     main(event, context)
