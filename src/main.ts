@@ -1,10 +1,12 @@
 import * as path from 'path';
-import { LambdaIntegration, RestApi } from '@aws-cdk/aws-apigateway';
-import { PolicyStatement, Effect, AnyPrincipal } from '@aws-cdk/aws-iam';
+import { AwsIntegration, PassthroughBehavior, RestApi } from '@aws-cdk/aws-apigateway';
+import { PolicyStatement, Policy, Effect, AnyPrincipal, Role, ServicePrincipal } from '@aws-cdk/aws-iam';
 import { Code, Function, LayerVersion, Runtime } from '@aws-cdk/aws-lambda';
+import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import { BlockPublicAccess, Bucket, BucketEncryption, BucketPolicy } from '@aws-cdk/aws-s3';
-import { App, Construct, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
+import { Queue } from '@aws-cdk/aws-sqs';
+import { App, Aws, Construct, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
 
 export interface NodeSassMirrorProperties extends StackProps{
   /**
@@ -23,16 +25,54 @@ export class NodeSassMirrorStack extends Stack {
     const bucket = this.createBucket(props.whitelist);
     const layer = this.createLambdaLayer();
     const f = this.createFunction(layer, bucket);
+    const messageQueue = this.createQueue();
+
+    //Allow function to upload data to the S3 bucket
     bucket.grantPut(f);
-    this.prepareApiGw(f);
+
+    //Link the API Gateway to the SQS message queue
+    this.prepareApiGw(messageQueue);
+    //Link the SQS message queue to the Lambda function
+    const source = new SqsEventSource(messageQueue);
+    f.addEventSource(source);
   }
 
+  private createQueue() {
+    const dlq = new Queue(this, 'deadletterQueue', {
+    });
 
-  private prepareApiGw(f: Function) {
+    return new Queue(this, 'processingQueue', {
+      visibilityTimeout: Duration.seconds(300),
+      deadLetterQueue: {
+        queue: dlq,
+        maxReceiveCount: 1,
+      },
+    });
+  }
+
+  private prepareApiGw(messageQueue: Queue) {
+
+
+    const credentialsRole = new Role(this, 'Role', {
+      assumedBy: new ServicePrincipal('apigateway.amazonaws.com'),
+    });
+
+    credentialsRole.attachInlinePolicy(
+      new Policy(this, 'SendMessagePolicy', {
+        statements: [
+          new PolicyStatement({
+            actions: ['sqs:SendMessage'],
+            effect: Effect.ALLOW,
+            resources: [messageQueue.queueArn],
+          }),
+        ],
+      }),
+    );
+
+
     const gw = new RestApi(this, 'api-gw', {
       description: 'S3 Mirror API Gateway',
     });
-    const integration = new LambdaIntegration(f);
 
 
     const v1Resource = gw.root.addResource('v1.0');
@@ -42,7 +82,36 @@ export class NodeSassMirrorStack extends Stack {
       apiKeyName: 'api-key',
     });
 
-    const rNotify = notifyResource.addMethod('POST', integration, { apiKeyRequired: true });
+    const template= '&MessageBody=This+is+a+test+message&MessageAttribute.1.Name=tag&MessageAttribute.1.Value.StringValue=$input.params(\'tag\')&MessageAttribute.1.Value.DataType=String';
+
+    const method = notifyResource.addMethod('POST',
+      new AwsIntegration({
+        service: 'sqs',
+        path: `${Aws.ACCOUNT_ID}/${messageQueue.queueName}`,
+
+        integrationHttpMethod: 'POST',
+        options: {
+          credentialsRole,
+          passthroughBehavior: PassthroughBehavior.NEVER,
+          requestParameters: {
+            'integration.request.header.Content-Type': '\'application/x-www-form-urlencoded\'',
+          },
+          requestTemplates: {
+            'application/json': 'Action=SendMessage'+template,
+          },
+          integrationResponses: [
+            {
+              statusCode: '200',
+              responseTemplates: {
+                'application/json': '{"done": true}',
+              },
+            },
+          ],
+        },
+      }), { methodResponses: [{ statusCode: '200' }], apiKeyRequired: true },
+
+    );
+
 
     const plan = gw.addUsagePlan('UsagePlan', {
       name: 'api-key-usage-plan',
@@ -57,7 +126,7 @@ export class NodeSassMirrorStack extends Stack {
       stage: gw.deploymentStage,
       throttle: [
         {
-          method: rNotify,
+          method: method,
           throttle: {
             rateLimit: 5,
             burstLimit: 2,
