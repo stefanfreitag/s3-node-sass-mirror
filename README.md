@@ -27,6 +27,5 @@ curl -X POST  -H "x-api-key: <api-key-value>" https://<api-gw-id>.execute-api.eu
 ## ToDos
 
 - Return proper return values from Lambda
-- Remove uploaded files to avoid `No space left on device` errors
 - Investigate on An error occurred (403) when calling the HeadBucket operation: Forbidden
-- Update python code to make use of sqs records (tag = record['messageAttributes']["tag"]['stringValue'])
+- Add DLQ handling

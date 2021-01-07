@@ -29,9 +29,11 @@ export class NodeSassMirrorStack extends Stack {
 
     //Allow function to upload data to the S3 bucket
     bucket.grantPut(f);
+    bucket.grantRead(f);
 
     //Link the API Gateway to the SQS message queue
-    this.prepareApiGw(messageQueue);
+    const role = this.createApiGwRole(messageQueue);
+    this.prepareApiGw(messageQueue, role);
     //Link the SQS message queue to the Lambda function
     const source = new SqsEventSource(messageQueue);
     f.addEventSource(source);
@@ -39,10 +41,12 @@ export class NodeSassMirrorStack extends Stack {
 
   private createQueue() {
     const dlq = new Queue(this, 'deadletterQueue', {
+      retentionPeriod: Duration.days(7),
     });
 
     return new Queue(this, 'processingQueue', {
       visibilityTimeout: Duration.seconds(300),
+
       deadLetterQueue: {
         queue: dlq,
         maxReceiveCount: 1,
@@ -50,9 +54,7 @@ export class NodeSassMirrorStack extends Stack {
     });
   }
 
-  private prepareApiGw(messageQueue: Queue) {
-
-
+  private createApiGwRole(messageQueue: Queue):Role {
     const credentialsRole = new Role(this, 'Role', {
       assumedBy: new ServicePrincipal('apigateway.amazonaws.com'),
     });
@@ -68,6 +70,9 @@ export class NodeSassMirrorStack extends Stack {
         ],
       }),
     );
+    return credentialsRole;
+  }
+  private prepareApiGw(messageQueue: Queue, role: Role) {
 
 
     const gw = new RestApi(this, 'api-gw', {
@@ -91,7 +96,7 @@ export class NodeSassMirrorStack extends Stack {
 
         integrationHttpMethod: 'POST',
         options: {
-          credentialsRole,
+          credentialsRole: role,
           passthroughBehavior: PassthroughBehavior.NEVER,
           requestParameters: {
             'integration.request.header.Content-Type': '\'application/x-www-form-urlencoded\'',
@@ -221,6 +226,6 @@ const app = new App();
 
 new NodeSassMirrorStack(app, 'my-stack-dev', {
   env: devEnv,
-  whitelist: ['87.122.211.250/32'],
+  whitelist: ['87.123.53.81/32'],
 });
 app.synth();
