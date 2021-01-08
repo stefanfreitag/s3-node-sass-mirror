@@ -93,55 +93,38 @@ def main(event, context):
     :return:
     """
     global S3_BUCKET
+    S3_BUCKET = os.environ["BUCKET_NAME"]
+    logging.info("S3 Bucket used as target: " + S3_BUCKET)
 
-    path = event["path"]
-    if path == "/v1.0/mirror":
-        if (
-            event["queryStringParameters"] is None
-            or event["queryStringParameters"]["tag"] is None
-        ):
-            return {
-                "statusCode": 400,
-                "body": json.dumps("Missing query parameter 'tag'"),
-            }
-
-        S3_BUCKET = os.environ["BUCKET_NAME"]
-        logging.info("S3 Bucket used as target: " + S3_BUCKET)
-        tag = event["queryStringParameters"]["tag"]
-        try:
-            release = get_release_by_tag(owner=OWNER, repository=REPOSITORY, tag=tag)
-            if release is not None:
-                rel_assets = filter(is_relevant_asset, release["assets"])
-                for asset in rel_assets:
-                    if not exists_file(asset["name"]):
-                        do_download(asset, "/tmp/")
-                    else:
-                        logging.info("Local copy exists for " + asset["name"])
-                    if not is_existing(
-                        S3_BUCKET, REPOSITORY + "/" + tag + "/" + asset["name"]
-                    ):
-                        upload_file(
-                            "/tmp/" + asset["name"], S3_BUCKET, REPOSITORY + "/" + tag
-                        )
-            else:
-                raise RuntimeError("No releases found for tag " + tag + ".")
-        except KeyError as identifier:
-            print("Key error for " + str(identifier))
-
-        return {"statusCode": 200, "body": json.dumps("Hello from S3 mirror")}
-    else:
-        return {"statusCode": 404, "body": json.dumps("Invalid path specified")}
+    for record in event["Records"]:
+        tag = record["messageAttributes"]["tag"]["stringValue"]
+        release = get_release_by_tag(owner=OWNER, repository=REPOSITORY, tag=tag)
+        if release is not None:
+            rel_assets = filter(is_relevant_asset, release["assets"])
+            for asset in rel_assets:
+                if not exists_file(asset["name"]):
+                    do_download(asset, "/tmp/")
+                else:
+                    logging.info("Local copy exists for " + asset["name"])
+                if not is_existing(
+                    S3_BUCKET, REPOSITORY + "/" + tag + "/" + asset["name"]
+                ):
+                    upload_file(
+                        "/tmp/" + asset["name"], S3_BUCKET, REPOSITORY + "/" + tag
+                    )
+                os.remove("/tmp/" + asset["name"])
+        else:
+            raise RuntimeError("No releases found for tag " + tag + ".")
 
 
 def exists_file(name: str):
-    # TODO: Add temp directory
     return os.path.isfile(name)
 
 
 def is_relevant_asset(asset: dict):
     """
     Returns if an asset is relevant for this process. For being relevant the asset name needs to contain "windows" or "linux"
-    :param asset:
+    :param asset: The asset information as it is available in the samples directory.
     :type asset: dict
     :return:
     """
@@ -164,6 +147,6 @@ if __name__ == "__main__":
     configure_logging()
     os.environ["AWS_PROFILE"] = "cdk"
     os.environ["BUCKET_NAME"] = "stefanfreitag1977-demo-bucket"
-    event = {"path": "/v1.0/mirror", "queryStringParameters": {"tag": "v4.13.1"}}
+    event = {"Records": [{"messageAttributes": {"tag": {"stringValue": "v4.13.1"}}}]}
     context = None
     main(event, context)

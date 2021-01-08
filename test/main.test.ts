@@ -31,6 +31,18 @@ test('Stack contains required AWS Lambda', () => {
 });
 
 
+test('Stack contains required AWS SQS Queue', () => {
+  const app = new App();
+  const stack = new NodeSassMirrorStack(app, 'test');
+
+
+  expectCDK(stack).to(
+    haveResource('AWS::SQS::Queue', {
+      VisibilityTimeout: 300,
+    }),
+  );
+});
+
 test('Stack contains required AWS S3 Bucket', () => {
   const app = new App();
   const stack = new NodeSassMirrorStack(app, 'test');
