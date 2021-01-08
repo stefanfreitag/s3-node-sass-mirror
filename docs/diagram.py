@@ -18,10 +18,10 @@ with Diagram("node-sass mirror", show=False, outformat="png", filename="overview
     s3_bucket = S3(label="S3 Bucket")
     gw = APIGateway(label="API Gateway")
     lambda_function = Lambda("Lambda function")
-    message_queue = SQS(label="Message Queue")
+    message_queue = SQS(label="Processing Queue")
     dl_queue = SQS(label="Dead Letter Queue")
     inet >> gw >> message_queue
     message_queue >> dl_queue
-    message_queue >> Edge(label="Triggers") >>lambda_function
-    lambda_function >> Edge(label="Upload release assets") >> s3_bucket
-    s3_bucket>>Edge(label="Allows download") >>inet
+    message_queue >> Edge(label="triggers") >> lambda_function
+    lambda_function >> Edge(label="uploads asset to ") >> s3_bucket
+    s3_bucket >> Edge(label="download for whitelisted addresses") >> inet
