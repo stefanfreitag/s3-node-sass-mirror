@@ -6,7 +6,7 @@ import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
 import { RetentionDays } from '@aws-cdk/aws-logs';
 import { BlockPublicAccess, Bucket, BucketEncryption, BucketPolicy } from '@aws-cdk/aws-s3';
 import { Queue } from '@aws-cdk/aws-sqs';
-import { App, Aws, Construct, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
+import { App, Aws, CfnOutput, Construct, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
 
 export interface NodeSassMirrorProperties extends StackProps{
   /**
@@ -37,6 +37,11 @@ export class NodeSassMirrorStack extends Stack {
     //Link the SQS message queue to the Lambda function
     const source = new SqsEventSource(messageQueue);
     f.addEventSource(source);
+
+    new CfnOutput(this, 'bucket_name', {
+      description: 'S3 bucket name',
+      value: bucket.bucketRegionalDomainName,
+    });
   }
 
   private createQueue() {
@@ -84,7 +89,10 @@ export class NodeSassMirrorStack extends Stack {
     const notifyResource = v1Resource.addResource('mirror');
 
     const apiKey = gw.addApiKey('ApiKey', {
-      apiKeyName: 'api-key',
+    });
+    new CfnOutput(this, 'api_key', {
+      description: 'API key identifier',
+      value: apiKey.keyId,
     });
 
     const template= '&MessageBody=This+is+a+test+message&MessageAttribute.1.Name=tag&MessageAttribute.1.Value.StringValue=$input.params(\'tag\')&MessageAttribute.1.Value.DataType=String';
@@ -226,6 +234,6 @@ const app = new App();
 
 new NodeSassMirrorStack(app, 'my-stack-dev', {
   env: devEnv,
-  whitelist: ['87.123.53.81/32'],
+  whitelist: ['87.123.80.49/32'],
 });
 app.synth();
