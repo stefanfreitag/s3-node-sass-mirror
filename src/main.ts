@@ -86,7 +86,7 @@ export class NodeSassMirrorStack extends Stack {
 
 
     const v1Resource = gw.root.addResource('v1.0');
-    const notifyResource = v1Resource.addResource('mirror');
+    const mirrorResource = v1Resource.addResource('mirror');
 
     const apiKey = gw.addApiKey('ApiKey', {
     });
@@ -97,7 +97,7 @@ export class NodeSassMirrorStack extends Stack {
 
     const template= '&MessageBody=This+is+a+test+message&MessageAttribute.1.Name=tag&MessageAttribute.1.Value.StringValue=$input.params(\'tag\')&MessageAttribute.1.Value.DataType=String';
 
-    const method = notifyResource.addMethod('POST',
+    const method = mirrorResource.addMethod('POST',
       new AwsIntegration({
         service: 'sqs',
         path: `${Aws.ACCOUNT_ID}/${messageQueue.queueName}`,
