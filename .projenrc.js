@@ -3,7 +3,7 @@ const { AwsCdkTypeScriptApp, Stability } = require('projen');
 const AUTOMATION_TOKEN = 'PROJEN_GITHUB_TOKEN';
 
 const project = new AwsCdkTypeScriptApp({
-  cdkVersion: '1.85.0',
+  cdkVersion: '1.87.1',
   name: 's3-node-sass-mirror',
   authorAddress: 'stefan.freitag@udo.edu',
   authorName: 'Stefan Freitag',

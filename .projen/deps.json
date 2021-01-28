@@ -21,7 +21,7 @@
     },
     {
       "name": "aws-cdk",
-      "version": "^1.85.0",
+      "version": "^1.87.1",
       "type": "build"
     },
     {
@@ -55,7 +55,7 @@
     },
     {
       "name": "projen",
-      "version": "^0.15.0",
+      "version": "^0.15.13",
       "type": "build"
     },
     {
@@ -78,47 +78,47 @@
     },
     {
       "name": "@aws-cdk/assert",
-      "version": "^1.85.0",
+      "version": "^1.87.1",
       "type": "runtime"
     },
     {
       "name": "@aws-cdk/aws-apigateway",
-      "version": "^1.85.0",
+      "version": "^1.87.1",
       "type": "runtime"
     },
     {
       "name": "@aws-cdk/aws-iam",
-      "version": "^1.85.0",
+      "version": "^1.87.1",
       "type": "runtime"
     },
     {
       "name": "@aws-cdk/aws-lambda-event-sources",
-      "version": "^1.85.0",
+      "version": "^1.87.1",
       "type": "runtime"
     },
     {
       "name": "@aws-cdk/aws-lambda",
-      "version": "^1.85.0",
+      "version": "^1.87.1",
       "type": "runtime"
     },
     {
       "name": "@aws-cdk/aws-logs",
-      "version": "^1.85.0",
+      "version": "^1.87.1",
       "type": "runtime"
     },
     {
       "name": "@aws-cdk/aws-s3",
-      "version": "^1.85.0",
+      "version": "^1.87.1",
       "type": "runtime"
     },
     {
       "name": "@aws-cdk/aws-sqs",
-      "version": "^1.85.0",
+      "version": "^1.87.1",
       "type": "runtime"
     },
     {
       "name": "@aws-cdk/core",
-      "version": "^1.85.0",
+      "version": "^1.87.1",
       "type": "runtime"
     }
   ],
