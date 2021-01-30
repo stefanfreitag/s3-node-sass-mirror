@@ -102,17 +102,17 @@ def main(event, context):
         if release is not None:
             rel_assets = filter(is_relevant_asset, release["assets"])
             for asset in rel_assets:
-                if not exists_file(asset["name"]):
-                    do_download(asset, "/tmp/")
-                else:
-                    logging.info("Local copy exists for " + asset["name"])
                 if not is_existing(
                     S3_BUCKET, REPOSITORY + "/" + tag + "/" + asset["name"]
                 ):
+                    if not exists_file(asset["name"]):
+                        do_download(asset, "/tmp/")
+                    else:
+                        logging.info("Local copy exists for " + asset["name"])
                     upload_file(
                         "/tmp/" + asset["name"], S3_BUCKET, REPOSITORY + "/" + tag
                     )
-                os.remove("/tmp/" + asset["name"])
+                    os.remove("/tmp/" + asset["name"])
         else:
             raise RuntimeError("No releases found for tag " + tag + ".")
 
