@@ -3,7 +3,7 @@ const { AwsCdkTypeScriptApp, Stability } = require('projen');
 const AUTOMATION_TOKEN = 'PROJEN_GITHUB_TOKEN';
 
 const project = new AwsCdkTypeScriptApp({
-  cdkVersion: '1.87.1',
+  cdkVersion: '1.88.0',
   name: 's3-node-sass-mirror',
   authorAddress: 'stefan.freitag@udo.edu',
   authorName: 'Stefan Freitag',
@@ -18,7 +18,7 @@ const project = new AwsCdkTypeScriptApp({
   },
   dependabot: false,
   stability: Stability.EXPERIMENTAL,
-
+  defaultReleaseBranch: 'master',
   cdkDependencies: [
     '@aws-cdk/aws-apigateway',
     '@aws-cdk/aws-iam',
@@ -27,10 +27,18 @@ const project = new AwsCdkTypeScriptApp({
     '@aws-cdk/aws-s3',
     '@aws-cdk/aws-sqs',
     '@aws-cdk/aws-lambda-event-sources',
+    '@aws-cdk/pipelines',
+    '@aws-cdk/aws-codebuild',
+    '@aws-cdk/aws-codepipeline',
+    '@aws-cdk/aws-codepipeline-actions',
   ],
   python: {
     distName: 'cdk-s3-node-sass-mirror',
     module: 'cdk_s3_node_sass_mirror',
+  },
+  context: {
+    '@aws-cdk/core:newStyleStackSynthesis': 'true',
+    'whitelist': ['87.123.55.147/32'],
   },
 });
 
