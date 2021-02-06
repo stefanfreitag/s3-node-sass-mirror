@@ -1,7 +1,7 @@
 import '@aws-cdk/assert/jest';
 import { expect as expectCDK, haveResource } from '@aws-cdk/assert';
 import { App } from '@aws-cdk/core';
-import { NodeSassMirrorStack } from '../src/main';
+import { NodeSassMirrorStack } from '../src/node_sass_mirror';
 
 test('Stack contains required AWS Lambda', () => {
   const app = new App();
