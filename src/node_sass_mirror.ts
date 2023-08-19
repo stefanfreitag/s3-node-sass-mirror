@@ -1,12 +1,13 @@
 import * as path from 'path';
-import { AwsIntegration, PassthroughBehavior, RestApi } from '@aws-cdk/aws-apigateway';
-import { PolicyStatement, Policy, Effect, AnyPrincipal, Role, ServicePrincipal } from '@aws-cdk/aws-iam';
-import { Code, Function, LayerVersion, Runtime } from '@aws-cdk/aws-lambda';
-import { SqsEventSource } from '@aws-cdk/aws-lambda-event-sources';
-import { RetentionDays } from '@aws-cdk/aws-logs';
-import { BlockPublicAccess, Bucket, BucketEncryption, BucketPolicy } from '@aws-cdk/aws-s3';
-import { Queue } from '@aws-cdk/aws-sqs';
-import { Aws, CfnOutput, Construct, Duration, RemovalPolicy, Stack, StackProps } from '@aws-cdk/core';
+import { Aws, CfnOutput, Duration, RemovalPolicy, Stack, StackProps } from 'aws-cdk-lib';
+import { AwsIntegration, PassthroughBehavior, RestApi } from 'aws-cdk-lib/aws-apigateway';
+import { AnyPrincipal, Effect, Policy, PolicyStatement, Role, ServicePrincipal } from 'aws-cdk-lib/aws-iam';
+import { Code, Function, LayerVersion, Runtime } from 'aws-cdk-lib/aws-lambda';
+import { SqsEventSource } from 'aws-cdk-lib/aws-lambda-event-sources';
+import { RetentionDays } from 'aws-cdk-lib/aws-logs';
+import { BlockPublicAccess, Bucket, BucketEncryption, BucketPolicy } from 'aws-cdk-lib/aws-s3';
+import { Queue } from 'aws-cdk-lib/aws-sqs';
+import { Construct } from 'constructs';
 
 export interface NodeSassMirrorProperties extends StackProps{
   /**
@@ -24,7 +25,7 @@ export class NodeSassMirrorStack extends Stack {
 
     const bucket = this.createBucket(props.whitelist);
     const layer = this.createLambdaLayer();
-    const f = this.createFunction(layer, bucket);
+    const f: Function = this.createFunction(layer, bucket);
     const messageQueue = this.createQueue();
 
     //Allow function to upload data to the S3 bucket
@@ -128,13 +129,12 @@ export class NodeSassMirrorStack extends Stack {
 
     const plan = gw.addUsagePlan('UsagePlan', {
       name: 'api-key-usage-plan',
-      apiKey: apiKey,
       throttle: {
         rateLimit: 10,
         burstLimit: 2,
       },
     });
-
+    plan.addApiKey(apiKey);
     plan.addApiStage({
       stage: gw.deploymentStage,
       throttle: [
