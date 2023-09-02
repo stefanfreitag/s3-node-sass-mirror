@@ -2,6 +2,7 @@
   "dependencies": [
     {
       "name": "@types/jest",
+      "version": "^29",
       "type": "build"
     },
     {
@@ -11,17 +12,17 @@
     },
     {
       "name": "@typescript-eslint/eslint-plugin",
-      "version": "^5",
+      "version": "^6",
       "type": "build"
     },
     {
       "name": "@typescript-eslint/parser",
-      "version": "^5",
+      "version": "^6",
       "type": "build"
     },
     {
       "name": "aws-cdk",
-      "version": "^2.91.0",
+      "version": "^2.94.0",
       "type": "build"
     },
     {
@@ -46,12 +47,13 @@
       "type": "build"
     },
     {
-      "name": "jest",
+      "name": "jest-junit",
+      "version": "^15",
       "type": "build"
     },
     {
-      "name": "jest-junit",
-      "version": "^15",
+      "name": "jest",
+      "version": "^29",
       "type": "build"
     },
     {
@@ -65,6 +67,7 @@
     },
     {
       "name": "ts-jest",
+      "version": "^29",
       "type": "build"
     },
     {
@@ -73,11 +76,12 @@
     },
     {
       "name": "typescript",
+      "version": "^5",
       "type": "build"
     },
     {
       "name": "aws-cdk-lib",
-      "version": "^2.91.0",
+      "version": "^2.94.0",
       "type": "runtime"
     },
     {
