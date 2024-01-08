@@ -27,3 +27,4 @@ cdk.out/
 .idea
 __pycache__/
 layer/python/
+/.gitattributes
