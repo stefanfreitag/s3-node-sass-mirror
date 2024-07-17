@@ -5,7 +5,7 @@ const { UpgradeDependenciesSchedule } = require('projen/lib/javascript');
 const AUTOMATION_TOKEN = 'PROJEN_GITHUB_TOKEN';
 
 const project = new awscdk.AwsCdkTypeScriptApp({
-  cdkVersion: '2.94.0',
+  cdkVersion: '2.149.0',
   name: 's3-node-sass-mirror',
   authorAddress: 'stefan.freitag@udo.edu',
   authorName: 'Stefan Freitag',
@@ -19,7 +19,11 @@ const project = new awscdk.AwsCdkTypeScriptApp({
     announce: false,
   },
   dependabot: false,
-
+  depsUpgradeOptions: {
+    workflowOptions: {
+      schedule: UpgradeDependenciesSchedule.MONTHLY,
+    },
+  },
   defaultReleaseBranch: 'master',
   python: {
     distName: 'cdk-s3-node-sass-mirror',
