@@ -9,7 +9,7 @@ import { BlockPublicAccess, Bucket, BucketEncryption, BucketPolicy } from 'aws-c
 import { Queue } from 'aws-cdk-lib/aws-sqs';
 import { Construct } from 'constructs';
 
-export interface NodeSassMirrorProperties extends StackProps{
+export interface NodeSassMirrorProperties extends StackProps {
   /**
    * IP addresses (CIDR format) that can access the mirrored content.
    */
